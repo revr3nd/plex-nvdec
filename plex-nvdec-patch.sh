@@ -33,12 +33,10 @@ contains() {
 while (( "$#" )); do
   case "$1" in
     -p|--path)
-      echo "Path: $2"
       PLEX_PATH=$2
       shift 2
       ;;
     -c|--codec)
-      echo "Codec: $2"
       if contains ALLOWED_CODECS "$2"; then
         CODECS+=$2
       else

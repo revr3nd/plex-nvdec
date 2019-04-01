@@ -2,7 +2,7 @@
 
 PLEX_PATH="/usr/lib/plexmediaserver/"
 CODECS=()
-ALLOWED_CODECS=("h264" "hevc" "mjpeg" "mpeg1video" "mpeg2video" "mpeg4" "vc1" "vp8" "vp9")
+ALLOWED_CODECS=("h264" "hevc" "mpeg2video" "mpeg4" "vc1" "vp8" "vp9")
 USAGE="Usage: $(basename $0) [OPTIONS]
   -p, --path        Manually define the path to the folder containing the Plex
                       Transcoder
@@ -13,8 +13,6 @@ USAGE="Usage: $(basename $0) [OPTIONS]
 Available codec options are:
   h264 (default)       H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10
   hevc (default)       H.265 / HEVC (High Efficiency Video Coding)
-  mjpeg                Motion JPEG
-  mpeg1video           MPEG-1 video
   mpeg2video           MPEG-2 video
   mpeg4                MPEG-4 part 2
   vc1                  SMPTE VC-1

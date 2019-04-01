@@ -9,6 +9,7 @@ USAGE="Usage: $(basename $0) [OPTIONS]
   -c, --codec       Whitelistes codec to enable NVDEC for. When defined, NVDEC
                       will only be enabled for defined codecs. Use -c once per
                       codec
+  -u, --uninstall   Removes the patch and restores the original Plex Transcoder
 
 Available codec options are:
   h264 (default)       H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10
@@ -69,7 +70,7 @@ if [ ! -f "$PLEX_PATH/Plex Transcoder" ]; then
 fi
 
 pcheck=$(tail -n 1 "$PLEX_PATH/Plex Transcoder")
-if [ "$pcheck" <> "##patched" ]; then
+if [ "$pcheck" == "##patched" ]; then
   echo "Patch has already been applied! Reapplying wrapper script"
 else
   mv /usr/lib/plexmediaserver/Plex\ Transcoder /usr/lib/plexmediaserver/Plex\ Transcoder2
@@ -83,7 +84,8 @@ cstring+=']; then'
 
 cat > /usr/lib/plexmediaserver/Plex\ Transcoder <<< '#!/bin/bash
 get_codec() {
-    while (( "$#" )); do
+    while [ "-i" != "$1" ]; do
+      echo "$1"
       if [ "-codec:0" == "$1" ]; then
         echo "$2"
         return 0

@@ -9,7 +9,6 @@ USAGE="Usage: $(basename $0) [OPTIONS]
   -c, --codec       Whitelistes codec to enable NVDEC for. When defined, NVDEC
                       will only be enabled for defined codecs. Use -c once per
                       codec
-  -u, --uninstall   Removes the patch and restores the original Plex Transcoder
 
 Available codec options are:
   h264 (default)       H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10

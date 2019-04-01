@@ -85,7 +85,6 @@ cstring+=']; then'
 cat > /usr/lib/plexmediaserver/Plex\ Transcoder <<< '#!/bin/bash
 get_codec() {
     while [ "-i" != "$1" ]; do
-      echo "$1"
       if [ "-codec:0" == "$1" ]; then
         echo "$2"
         return 0

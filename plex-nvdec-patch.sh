@@ -43,9 +43,9 @@ while (( "$#" )); do
       fi
       shift 2
       ;;
-    -h|--help|*) # unsupported flags
-      echo "$USAGE" >&2
-      exit 1
+    -h|--help|*)
+      echo "$USAGE"
+      exit
       ;;
   esac
 done
@@ -77,13 +77,24 @@ fi
 
 cstring="if [ "
 for i in "${CODECS[@]}"; do
-  cstring+='$marap == "'"$i"'" ] || [ '
+  cstring+='$codec == "'"$i"'" ] || [ '
 done
 cstring+=']; then'
 
 cat > /usr/lib/plexmediaserver/Plex\ Transcoder <<< '#!/bin/bash
-marap=$(cut -c 10-14 <<<"$@")'
+get_codec() {
+    while (( "$#" )); do
+      if [ "-codec:0" == "$1" ]; then
+        echo "$2"
+        return 0
+      fi
+      shift 1
+    done
+    echo "0"
+    return 1
+}
 
+codec="$(get_codec $*)"'
 cat >> /usr/lib/plexmediaserver/Plex\ Transcoder <<< "$cstring"
 cat >> /usr/lib/plexmediaserver/Plex\ Transcoder <<< '     exec /usr/lib/plexmediaserver/Plex\ Transcoder2 -hwaccel nvdec "$@"
 else

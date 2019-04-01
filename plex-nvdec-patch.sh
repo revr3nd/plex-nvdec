@@ -69,7 +69,7 @@ if [ ! -f "$PLEX_PATH/Plex Transcoder" ]; then
   fi
 fi
 
-pcheck=$(tail -n 1 "$PLEX_PATH/Plex Transcoder")
+pcheck=$(tail -n 1 "$PLEX_PATH/Plex Transcoder" | tr -d '\0')
 if [ "$pcheck" == "##patched" ]; then
   echo "Patch has already been applied! Reapplying wrapper script"
 else

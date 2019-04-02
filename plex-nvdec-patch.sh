@@ -72,6 +72,10 @@ pcheck=$(tail -n 1 "$PLEX_PATH/Plex Transcoder" | tr -d '\0')
 if [ "$pcheck" == "##patched" ]; then
   echo "Patch has already been applied! Reapplying wrapper script"
 else
+  if pgrep -x "Plex Transcoder" >/dev/null ; then
+    echo "ERROR: Plex Transcoder is currently running. Please stop any open transcodes and run again" >&2
+    exit 1
+  fi
   mv /usr/lib/plexmediaserver/Plex\ Transcoder /usr/lib/plexmediaserver/Plex\ Transcoder2
 fi
 
@@ -104,3 +108,5 @@ fi
 ##patched'
 
 chmod +x /usr/lib/plexmediaserver/Plex\ Transcoder
+
+echo "Patch applied successfully!"

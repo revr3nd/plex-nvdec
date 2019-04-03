@@ -76,7 +76,7 @@ else
     echo "ERROR: Plex Transcoder is currently running. Please stop any open transcodes and run again" >&2
     exit 1
   fi
-  mv /usr/lib/plexmediaserver/Plex\ Transcoder /usr/lib/plexmediaserver/Plex\ Transcoder2
+  mv "$PLEX_PATH/Plex Transcoder" "$PLEX_PATH/Plex Transcoder2"
 fi
 
 cstring="if [ "
@@ -85,7 +85,7 @@ for i in "${CODECS[@]}"; do
 done
 cstring+=']; then'
 
-cat > /usr/lib/plexmediaserver/Plex\ Transcoder <<< '#!/bin/bash
+cat > "$PLEX_PATH/Plex Transcoder" <<< '#!/bin/bash
 get_codec() {
     while [ "-i" != "$1" ]; do
       if [ "-codec:0" == "$1" ]; then
@@ -99,14 +99,14 @@ get_codec() {
 }
 
 codec="$(get_codec $*)"'
-cat >> /usr/lib/plexmediaserver/Plex\ Transcoder <<< "$cstring"
-cat >> /usr/lib/plexmediaserver/Plex\ Transcoder <<< '     exec /usr/lib/plexmediaserver/Plex\ Transcoder2 -hwaccel nvdec "$@"
+cat >> "$PLEX_PATH/Plex Transcoder" <<< "$cstring"
+cat >> "$PLEX_PATH/Plex Transcoder" <<< '     exec /usr/lib/plexmediaserver/Plex\ Transcoder2 -hwaccel nvdec "$@"
 else
      exec /usr/lib/plexmediaserver/Plex\ Transcoder2 "$@"
 fi
 
 ##patched'
 
-chmod +x /usr/lib/plexmediaserver/Plex\ Transcoder
+chmod +x "$PLEX_PATH/Plex Transcoder"
 
 echo "Patch applied successfully!"

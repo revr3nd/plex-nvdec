@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PLEX_PATH="/usr/lib/plexmediaserver/"
+PLEX_PATH="/usr/lib/plexmediaserver"
 CODECS=()
 ALLOWED_CODECS=("h264" "hevc" "mpeg2video" "mpeg4" "vc1" "vp8" "vp9")
 USAGE="Usage: $(basename $0) [OPTIONS]
@@ -9,6 +9,7 @@ USAGE="Usage: $(basename $0) [OPTIONS]
   -c, --codec       Whitelistes codec to enable NVDEC for. When defined, NVDEC
                       will only be enabled for defined codecs. Use -c once per
                       codec
+  -u, --uninstall   Remove the NVDEC patch from Plex
 
 Available codec options are:
   h264 (default)       H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10
@@ -43,6 +44,10 @@ while (( "$#" )); do
       fi
       shift 2
       ;;
+    -u|--uninstall)
+      uninstall=1
+      shift 1
+      ;;
     -h|--help|*)
       echo "$USAGE"
       exit
@@ -61,7 +66,7 @@ fi
 
 if [ ! -f "$PLEX_PATH/Plex Transcoder" ]; then
   if [ -f "/usr/lib64/plexmediaserver/Plex Transcoder"]; then
-    PLEX_PATH="/usr/lib64/plexmediaserver/"
+    PLEX_PATH="/usr/lib64/plexmediaserver"
   else
     echo "ERROR: Plex transcoder not found. Please ensure plex is installed and use -p to manually define the path to the Plex Transcoder" >&2
     exit 1
@@ -69,6 +74,21 @@ if [ ! -f "$PLEX_PATH/Plex Transcoder" ]; then
 fi
 
 pcheck=$(tail -n 1 "$PLEX_PATH/Plex Transcoder" | tr -d '\0')
+if [ "$uninstall" == "1" ]; then
+  if [ "$pcheck" == "##patched" ]; then
+    if pgrep -x "Plex Transcoder" >/dev/null ; then
+      echo "ERROR: Plex Transcoder is currently running. Please stop any open transcodes and run again" >&2
+      exit 1
+    fi
+    mv "$PLEX_PATH/Plex Transcoder2" "$PLEX_PATH/Plex Transcoder"
+    echo "Uninstall of patch complete!"
+    exit
+  else
+    echo "ERROR: NVDEC Patch not detected as installed. Cannot uninstall."
+    exit 1
+  fi
+fi
+
 if [ "$pcheck" == "##patched" ]; then
   echo "Patch has already been applied! Reapplying wrapper script"
 else
@@ -76,37 +96,46 @@ else
     echo "ERROR: Plex Transcoder is currently running. Please stop any open transcodes and run again" >&2
     exit 1
   fi
-  mv /usr/lib/plexmediaserver/Plex\ Transcoder /usr/lib/plexmediaserver/Plex\ Transcoder2
+  mv "$PLEX_PATH/Plex Transcoder" "$PLEX_PATH/Plex Transcoder2"
 fi
 
-cstring="if [ "
 for i in "${CODECS[@]}"; do
-  cstring+='$codec == "'"$i"'" ] || [ '
+  cstring+='"'"$i"'" '
 done
-cstring+=']; then'
+cstring="${cstring::-1}"
 
-cat > /usr/lib/plexmediaserver/Plex\ Transcoder <<< '#!/bin/bash
-get_codec() {
-    while [ "-i" != "$1" ]; do
-      if [ "-codec:0" == "$1" ]; then
-        echo "$2"
-        return 0
-      fi
-      shift 1
-    done
-    echo "0"
-    return 1
+cat > "$PLEX_PATH/Plex Transcoder" <<< '#!/bin/bash'
+cat >> "$PLEX_PATH/Plex Transcoder" <<< 'PLEX_PATH="'"$PLEX_PATH"'"'
+cat >> "$PLEX_PATH/Plex Transcoder" <<< 'ALLOWED_CODECS=('"$cstring"')'
+cat >> "$PLEX_PATH/Plex Transcoder" <<< '
+contains() {
+  typeset _x;
+  typeset -n _A="$1"
+  for _x in "${_A[@]}" ; do
+    [ "$_x" = "$2" ] && return 0
+  done
+  return 1
 }
 
-codec="$(get_codec $*)"'
-cat >> /usr/lib/plexmediaserver/Plex\ Transcoder <<< "$cstring"
-cat >> /usr/lib/plexmediaserver/Plex\ Transcoder <<< '     exec /usr/lib/plexmediaserver/Plex\ Transcoder2 -hwaccel nvdec "$@"
+allowed_codec() {
+  for i in "$@"; do
+    if [ "-i" == "$i" ]; then
+      return 1
+    elif contains ALLOWED_CODECS "$i"; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+if allowed_codec $*; then
+  exec "$PLEX_PATH/Plex Transcoder2" -hwaccel nvdec "$@"
 else
-     exec /usr/lib/plexmediaserver/Plex\ Transcoder2 "$@"
+  exec "$PLEX_PATH/Plex Transcoder2" "$@"
 fi
 
 ##patched'
 
-chmod +x /usr/lib/plexmediaserver/Plex\ Transcoder
+chmod +x "$PLEX_PATH/Plex Transcoder"
 
 echo "Patch applied successfully!"

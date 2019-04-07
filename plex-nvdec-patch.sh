@@ -37,7 +37,7 @@ while (( "$#" )); do
       ;;
     -c|--codec)
       if contains ALLOWED_CODECS "$2"; then
-        CODECS+=$2
+        CODECS+=("$2")
       else
         echo "ERROR: Incorrect codec $2, please refer to --help for allowed list" >&2
         exit 1
